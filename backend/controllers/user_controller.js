@@ -3,9 +3,11 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import getDataUri from "../utils/dataUri.js";
 import cloudinary from "../utils/cloudinary.js";
+import { Post } from "../models/post_model.js";
 
 export const register = async (req,res)=>{
     try{
+        console.log("req.body=======",req.body)
         const {username,email,password} = req.body;
         if(!username|| !email ||!password){
             return res.status(401).json({
@@ -15,7 +17,8 @@ export const register = async (req,res)=>{
         }
         
         const user = await User.findOne({email});
-        if(user){
+        console.log("user=====",user)
+        if(user ){
             return res.status(401).json({
                 message:"Email is already exist!",
                 success:false,
@@ -49,8 +52,11 @@ export const login = async(req,res)=>{
                 success:false,
             })
         }
+
+        console.log("req.body=====",req.body)
         
         let user = await User.findOne({email});
+        console.log("user=====",user)
         if(!user){
             return res.status(401).json({
                 message:"Invalid Credentials, Please try again!",
@@ -67,6 +73,20 @@ export const login = async(req,res)=>{
             })
         }
 
+        const token = await jwt.sign({userId:user._id},process.env.JWT_SECRET_KEY,{expiresIn:'1d'})
+
+
+        console.log("user.posts====",user.posts)
+        console.log("user._id",user._id)
+        //populate each post id  in the array
+        const populatedPosts = await Promise.all(user.posts?.map(async(postId)=>{
+            const post = await Post.findById(postId);
+            if(post.author.equals(user._id)){
+                return post;
+            }
+            return null;
+
+        }))
         user ={
             _id:user._id,
             username:user.username,
@@ -78,7 +98,6 @@ export const login = async(req,res)=>{
             posts:user.posts
         }
 
-        const token = await jwt.sign({userId:user._id},process.env.JWT_SECRET_KEY,{expiresIn:'1d'})
         return res.cookie('token',token,{httpOnly:true,sameSite:'strict',maxAge:1*24*60*60*1000}).json({
             message:`Welcome back ${user.username}`,
             success:true,
