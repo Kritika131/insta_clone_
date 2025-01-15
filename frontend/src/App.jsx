@@ -8,6 +8,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import MainLayout from './components/MainLayout'
 import Home from './components/home/Home'
 import Profile from './components/Profile'
+import EditProfile from './components/EditProfile'
+import ChatPage from './components/ChatPage'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -22,8 +24,16 @@ function App() {
           element:<Home/>
         },
         {
-          path:"/profile",
+          path:"/profile/:id",
           element:<Profile/>
+        },
+        {
+          path:"/account/edit",
+          element:<EditProfile/>
+        },
+        {
+          path:"/chat",
+          element:<ChatPage/>
         }
       ]
     },

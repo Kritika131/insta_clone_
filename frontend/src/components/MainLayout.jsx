@@ -4,9 +4,9 @@ import LeftSidebar from './LeftSidebar'
 
 const MainLayout = () => {
   return (
-    <div>
+    <div className=''>
       <LeftSidebar/>
-      <div>
+      <div className=''>
         <Outlet/>
       </div>
     </div>
