@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { ImagePlus, MapPin, ChevronDown, Smile, Users, X } from "lucide-react";
 import { readFileAsDataUrl } from "@/utils/readFileAsDataUrl";
 import { setPosts } from "@/redux/postSlice";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 const LeftSidebar = () => {
   
@@ -30,6 +31,7 @@ const LeftSidebar = () => {
   const {user} = useSelector(store=>store.auth)
   const dispatch = useDispatch()
   const [open,setOpen] = useState(false)
+  const {likeNotification} = useSelector(store=>store.realTimeNotification)
   const sidebarItems = [
     {
       icon: <Home />,
@@ -108,6 +110,9 @@ const LeftSidebar = () => {
       navigate(`/profile/${user?._id}`)
     } else if(text==="Home"){
       navigate("/")
+    
+    } else if(text==="Messages"){
+      navigate("/chat")
     }
 
   }
@@ -124,6 +129,48 @@ const LeftSidebar = () => {
             >
               {item.icon}
               <span>{item.text}</span>
+              {item?.text === "Notifications" &&
+                likeNotification?.length > 0 && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        size="icon"
+                        className="rounded-full bg-red-600 hover:bg-red-600 h-5 w-5 absolute bottom-6 left-6"
+                      >
+                        {likeNotification?.length}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="">
+                        {likeNotification?.length === 0 ? (
+                          <p className="">No Notification</p>
+                        ) : (
+                          likeNotification?.map((notification) => (
+                            <div
+                              className="flex items-center gap-2 my-2"
+                              key={notification.userId}
+                            >
+                              <Avatar>
+                                <AvatarImage
+                                  src={
+                                    notification?.userDetails?.profilePicture
+                                  }
+                                />
+                                <AvatarFallback>CN</AvatarFallback>
+                              </Avatar>
+                              <p className="text-sm">
+                                <span className="font-bold">
+                                  {notification?.userDetails?.username}{" "}
+                                </span>
+                                liked your post
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
             </div>
           ))}
         </div>

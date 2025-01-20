@@ -3,6 +3,7 @@ import cloudinary from "../utils/cloudinary.js";
 import { Post } from "../models/post_model.js";
 import { User } from "../models/user_model.js";
 import { Comment } from "../models/comment_model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const addNewPost = async (req, res) => {
   try {
@@ -10,6 +11,9 @@ export const addNewPost = async (req, res) => {
     const image = req.file;
     const authorId = req.id;
 
+    // console.log("captions======",caption)
+    // console.log("image======",image)
+    // console.log("authorId======",authorId)
     if (!image) {
       return res.status(400).json({
         message: "Please upload an image",
@@ -108,7 +112,22 @@ export const likePost = async (req, res) => {
     await post.updateOne({ $addToSet: { likes: likedById } });
     await post.save();
 
+
     //implementing socket io for real time notification later
+     const user = await user.findById(likedById).select('username profilePicture')
+    const postOwnerId = post.author.toString()
+    if(postOwnerId!== likedById){
+      // emit notification event
+      const notification={
+        type:"like",
+        userId:likedById,
+        userDetails:user,
+        postId,
+        message:"Your post was liked"
+      }
+      const postOwnerSocketId = getReceiverSocketId(postOwnerId)
+      io.to(postOwnerSocketId).emit('notification',notification)
+    }
 
     return res.status(200).json({ message: "Post liked", success: true });
   } catch (err) {
@@ -131,6 +150,21 @@ export const dislikePost = async (req, res) => {
     await post.save();
 
     //implementing socket io for real time notification later
+    const user = await user.findById(likedById).select('username profilePicture')
+    const postOwnerId = post.author.toString()
+    if(postOwnerId!== likedById){
+      // emit notification event
+      const notification={
+        type:"dislike",
+        userId:likedById,
+        userDetails:user,
+        postId,
+        message:"Your post was disliked"
+      }
+      const postOwnerSocketId = getReceiverSocketId(postOwnerId)
+      io.to(postOwnerSocketId).emit('notification',notification)
+    }
+    
 
     return res.status(200).json({ message: "Post disliked", success: true });
   } catch (err) {
@@ -142,6 +176,10 @@ export const addComment = async (req, res) => {
   try {
     const postId = req.params.id;
     const commentedById = req.id;
+
+    console.log("id===",commentedById)
+        console.log("postId===",postId)
+
 
     const { text } = req.body;
     const post = await Post.findById(postId);
@@ -155,10 +193,14 @@ export const addComment = async (req, res) => {
       text,
       author: commentedById,
       post: postId,
-    }).populate({ path: author, select: "username, profilePicture" });
+    })
+    await comment.populate({
+      path: "author",
+      select: "username profilePicture"
+    })
     post.comments.push(comment._id);
     await post.save();
-    return res.status(201).josn({
+    return res.status(201).json({
       message: "Comment Added",
       comment,
       success: true,

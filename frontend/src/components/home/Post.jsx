@@ -116,6 +116,19 @@ console.log("text======",text)
       toast.error(e.response.data.message);
     }
   };
+
+  const bookmarkHandler = async()=>{
+    try{
+      const res = await axios.get(`http://8080/api/v1/post${post?._id}/bookmark`,{withCredentials:true})
+      if(res.data.success){
+        toast.success(res.data.message)
+
+      }
+
+    }catch(e){
+      console.log(e)
+    }
+  }
   return (
     <div className="my-8 w-full max-w-sm mx-auto">
       <div className="flex items-center justify-between">
@@ -141,12 +154,15 @@ console.log("text======",text)
             {/* <Button variant="outline">Edit Profile</Button> */}
           </DialogTrigger>
           <DialogContent className=" flex flex-col items-center text-sm text-center">
+            {post?.author?._id!== user?._id && (
+
             <Button
               variant="ghost"
               className="cursor-pointer w-fit text-[#ED4956] font-bold"
             >
               Unfollow
             </Button>
+            )}
             <Button variant="ghost" className="cursor-pointer w-fit ">
               Add to favorites
             </Button>
@@ -195,7 +211,7 @@ console.log("text======",text)
           />
           <Send className="cursor-pointer hover:text-gray-600" />
         </div>
-        <Bookmark className="cursor-pointer hover:text-gray-600" />
+        <Bookmark onClick={bookmarkHandler} className="cursor-pointer hover:text-gray-600" />
       </div>
       <span className="font-medium block mb-2"> {postLiked}k likes</span>
       <p className="">

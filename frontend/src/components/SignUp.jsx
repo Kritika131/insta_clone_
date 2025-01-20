@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Facebook } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setAuthUser } from "@/redux/authSlice";
 
@@ -34,6 +34,7 @@ const signupSchema = z.object({
 const InstagramAuth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const {user} = useSelector(store=>store.auth)
 
   const dispatch = useDispatch()
 
@@ -57,6 +58,13 @@ const InstagramAuth = () => {
     },
   });
 
+  
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, []);
+  
   const onSubmit = async (data) => {
     setIsLoading(true);
     console.log(data);

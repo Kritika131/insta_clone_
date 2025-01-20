@@ -124,7 +124,9 @@ export const logout=async(req,res)=>{
 export const getProfile = async(req,res)=>{
     try{
         const userId = req.params.id;
-        let user = await User.findById(userId).select("-password")
+        console.log("userId======",userId)
+        let user = await User.findById(userId).populate({path:"posts",createdAt:-1}).populate('bookmarks').select("-password");
+        console.log("user=====",user)
 
         return res.status(200).json({
             user,
@@ -138,6 +140,7 @@ export const getProfile = async(req,res)=>{
 
 export const editProfile=async(req,res)=>{
     try{
+        console.log("req,body====",req.body)
         const userId = req.id;
         const {bio,gender} = req.body;
 
