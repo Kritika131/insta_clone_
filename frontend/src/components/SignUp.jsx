@@ -64,7 +64,7 @@ const InstagramAuth = () => {
       navigate("/");
     }
   }, []);
-  
+
   const onSubmit = async (data) => {
     setIsLoading(true);
     console.log(data);
